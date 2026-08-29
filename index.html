@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>きろく</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EDEFE9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="きろく">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  html, body { margin: 0; padding: 0; background: #EDEFE9; -webkit-text-size-adjust: 100%; }
+  body { padding-top: env(safe-area-inset-top); }
+</style>
+</head>
+<body>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --paper: #EDEFE9;
+    --card: #FBFCF8;
+    --ink: #2B3033;
+    --ink-2: #616A6E;
+    --ink-3: #949C9F;
+    --rule: #DCDFD6;
+    --rule-2: #E7E9E1;
+    --mincho: "Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+    --gothic: "Hiragino Sans","Yu Gothic","YuGothic","Noto Sans JP",sans-serif;
+    --d: #8189C4;
+  }
+
+  .app {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--gothic);
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    border-radius: 0;
+    overflow: hidden;
+    line-height: 1.7;
+    position: relative;
+  }
+
+  /* ---------- day-colour bar ---------- */
+  .daybar { height: 4px; background: var(--d); transition: background .4s ease; }
+
+  /* ---------- tabs ---------- */
+  .tabs {
+    display: flex;
+    background: var(--card);
+    border-bottom: 1px solid var(--rule);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .tabs button {
+    flex: 1;
+    padding: 11px 2px 9px;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: var(--ink-3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .tabs button.on { color: var(--ink); border-bottom-color: var(--d); }
+  .tabs button:focus-visible { outline: 2px solid var(--d); outline-offset: -3px; }
+
+  .page { padding: 20px 16px 40px; display: none; }
+  .page.on { display: block; }
+
+  /* ---------- today header ---------- */
+  .today-head { margin-bottom: 20px; }
+  .today-head .wd {
+    font-family: var(--mincho);
+    font-size: 15px;
+    letter-spacing: .2em;
+    color: var(--d);
+  }
+  .today-head .dt {
+    font-family: var(--mincho);
+    font-size: 27px;
+    letter-spacing: .04em;
+    margin-top: 2px;
+  }
+  .today-head .dt small { font-size: 15px; color: var(--ink-2); margin-left: 6px; letter-spacing: .06em; }
+  .back-today {
+    background: none; border: none; font: inherit; font-size: 12px;
+    color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px;
+    cursor: pointer; padding: 4px 0 0;
+  }
+
+  /* ---------- cards ---------- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--rule-2);
+    border-radius: 12px;
+    padding: 15px 16px;
+    margin-bottom: 11px;
+  }
+  .card h3 {
+    font-family: var(--mincho);
+    font-size: 13px; font-weight: 400;
+    letter-spacing: .16em; color: var(--ink-2);
+    margin: 0 0 10px;
+  }
+
+  .rec-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .big-time {
+    font-family: var(--mincho);
+    font-size: 34px; letter-spacing: .02em; line-height: 1.15;
+  }
+  .big-time small { font-size: 14px; color: var(--ink-3); margin-left: 4px; }
+  .none { color: var(--ink-3); font-size: 14px; }
+
+  .btn {
+    border: 1px solid var(--d);
+    background: var(--d);
+    color: #fff;
+    font: inherit; font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn.quiet { background: none; color: var(--ink-2); border-color: var(--rule); }
+  .btn.small { font-size: 12.5px; padding: 7px 14px; }
+  .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .linkbtn {
+    background: none; border: none; font: inherit; font-size: 12px;
+    color: var(--ink-3); cursor: pointer; padding: 0;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .linkbtn:hover { color: var(--ink); }
+
+  /* ---------- meals ---------- */
+  .meal {
+    display: flex; gap: 12px;
+    padding: 11px 0;
+    border-top: 1px solid var(--rule-2);
+  }
+  .meal:first-of-type { border-top: none; }
+  .meal .t {
+    font-family: var(--mincho); font-size: 15px;
+    color: var(--ink-2); flex: 0 0 46px; padding-top: 1px;
+  }
+  .meal .b { flex: 1; min-width: 0; }
+  .meal .nm { font-size: 15px; }
+  .meal .sub { font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .chip {
+    font-size: 11px; padding: 2px 8px;
+    border-radius: 999px; background: var(--paper);
+    border: 1px solid var(--rule-2); color: var(--ink-2);
+  }
+  .kind { font-size: 10.5px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-3); }
+
+  /* ---------- photos ---------- */
+  .meal .ph {
+    width: 46px; height: 46px; border-radius: 8px; object-fit: cover;
+    flex: 0 0 46px; background: var(--rule-2); cursor: pointer;
+  }
+  .photo-grid .cell { padding: 0; overflow: hidden; position: relative; }
+  .photo-grid .cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-grid .cell .n {
+    position: absolute; top: 1px; left: 4px; font-size: 10px; z-index: 2;
+    color: var(--ink-2);
+  }
+  .photo-grid .cell.has .n { color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.75); }
+  .ph-pick { display: flex; gap: 11px; align-items: center; margin-bottom: 13px; }
+  .ph-pick img { width: 74px; height: 74px; object-fit: cover; border-radius: 10px; }
+  .sheet img.full { width: 100%; border-radius: 11px; margin-bottom: 13px; display: block; }
+
+  /* ---------- tidbit ---------- */
+  .tidbit { border-left: 3px solid var(--d); }
+  .tidbit .food { font-family: var(--mincho); font-size: 16px; margin-bottom: 4px; }
+  .tidbit p { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+  .tidbit .tags { margin-top: 9px; }
+
+  /* ---------- calendar ---------- */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .cal-head .mo { font-family: var(--mincho); font-size: 20px; letter-spacing: .06em; }
+  .wdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 5px; }
+  .wdays span { font-size: 10px; text-align: center; color: var(--ink-3); }
+  .cal { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .cell {
+    aspect-ratio: 1 / 1.15;
+    border: 1px solid var(--rule-2);
+    border-radius: 8px;
+    background: var(--card);
+    padding: 3px 0 0;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font: inherit; cursor: pointer;
+  }
+  .cell.blank { border-color: transparent; background: none; cursor: default; }
+  .cell.today { border-color: var(--ink-3); }
+  .cell.sel { border-color: var(--ink); border-width: 2px; }
+  .cell .n { font-family: var(--mincho); font-size: 12px; color: var(--ink-2); }
+  .cell .marks { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; }
+  .cell .m { width: 5px; height: 5px; border-radius: 50%; }
+
+  /* ---------- graph ---------- */
+  .plot { width: 100%; height: auto; display: block; }
+  .legend { font-size: 11.5px; color: var(--ink-3); margin-top: 6px; }
+  .stat { display: flex; gap: 22px; margin: 6px 0 14px; }
+  .stat div span { display: block; font-size: 11px; color: var(--ink-3); letter-spacing: .08em; }
+  .stat div strong { font-family: var(--mincho); font-size: 22px; font-weight: 400; }
+
+  /* ---------- review ---------- */
+  .tally { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--rule-2); font-size: 14px; }
+  .tally:last-child { border-bottom: none; }
+  .tally b { font-family: var(--mincho); font-weight: 400; font-size: 17px; }
+
+  /* ---------- book (豆知識帳) ---------- */
+  .seg { display: flex; gap: 6px; margin-bottom: 14px; }
+  .seg button {
+    flex: 1; padding: 8px; border-radius: 9px; border: 1px solid var(--rule);
+    background: none; font: inherit; font-size: 13px; color: var(--ink-2); cursor: pointer;
+  }
+  .seg button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .grid-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+  .gc {
+    border: 1px solid var(--rule-2); border-radius: 10px; background: var(--card);
+    padding: 10px 6px; font: inherit; font-size: 12px; cursor: pointer;
+    font-family: var(--mincho); letter-spacing: .02em; color: var(--ink);
+    min-height: 52px; display: flex; align-items: center; justify-content: center; text-align: center;
+  }
+  .gc.locked { color: var(--ink-3); background: none; border-style: dashed; }
+  .group-h { font-family: var(--mincho); font-size: 14px; letter-spacing: .1em; color: var(--ink-2); margin: 18px 0 8px; }
+
+  /* ---------- forms ---------- */
+  label.f { display: block; margin-bottom: 12px; }
+  label.f > span { display: block; font-size: 11.5px; color: var(--ink-2); letter-spacing: .06em; margin-bottom: 5px; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; padding: 10px 12px; border-radius: 9px;
+    border: 1px solid var(--rule); background: #fff; color: var(--ink);
+    font: inherit; font-size: 15px;
+  }
+  textarea { min-height: 76px; resize: vertical; font-size: 14px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--d); }
+  .row2 { display: flex; gap: 9px; }
+  .row2 > * { flex: 1; }
+  .hint { font-size: 11.5px; color: var(--ink-3); margin: 5px 0 0; }
+
+  .toggle { display: flex; gap: 0; border: 1px solid var(--rule); border-radius: 9px; overflow: hidden; }
+  .toggle button {
+    flex: 1; padding: 9px; border: none; background: none; font: inherit; font-size: 13px;
+    color: var(--ink-2); cursor: pointer;
+  }
+  .toggle button.on { background: var(--d); color: #fff; }
+
+  .sugg { border: 1px solid var(--rule-2); border-radius: 9px; margin-top: 5px; overflow: hidden; }
+  .sugg button {
+    display: block; width: 100%; text-align: left; padding: 9px 12px;
+    border: none; border-bottom: 1px solid var(--rule-2); background: var(--card);
+    font: inherit; font-size: 14px; cursor: pointer; color: var(--ink);
+  }
+  .sugg button:last-child { border-bottom: none; }
+  .sugg button small { color: var(--ink-3); font-size: 11px; margin-left: 6px; }
+
+  .chipedit { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .chipedit .chip { cursor: pointer; }
+  .chipedit .chip.pick { background: var(--d); border-color: var(--d); color: #fff; }
+
+  /* ---------- sheet ---------- */
+  .sheet-bg {
+    position: absolute; inset: 0; background: rgba(43,48,51,.34);
+    display: flex; align-items: flex-end; z-index: 40;
+  }
+  .sheet {
+    background: var(--paper); width: 100%; max-height: 92%; overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    padding: 18px 16px calc(26px + env(safe-area-inset-bottom));
+    animation: up .22s ease;
+  }
+  @keyframes up { from { transform: translateY(22px); opacity: .5 } }
+  .sheet h2 {
+    font-family: var(--mincho); font-size: 17px; font-weight: 400;
+    letter-spacing: .1em; margin: 0 0 16px;
+  }
+  .sheet-actions { display: flex; gap: 9px; margin-top: 18px; }
+  .sheet-actions .btn { flex: 1; text-align: center; }
+
+  .empty { color: var(--ink-3); font-size: 13.5px; margin: 0; }
+  .note { font-size: 11.5px; color: var(--ink-3); line-height: 1.65; }
+
+  .status {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    text-align: center; font-size: 11.5px;
+    padding: 7px 7px calc(7px + env(safe-area-inset-bottom));
+    background: var(--ink); color: var(--paper);
+    transform: translateY(100%); transition: transform .2s ease; z-index: 60;
+  }
+  .status.show { transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="app" id="app">
+  <div class="daybar" id="daybar"></div>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="today" class="on">きょう</button>
+    <button data-tab="cal">カレンダー</button>
+    <button data-tab="graph">ふりかえり</button>
+    <button data-tab="book">豆知識帳</button>
+    <button data-tab="reg">登録</button>
+  </nav>
+
+  <!-- ============ きょう ============ -->
+  <section class="page on" id="p-today">
+    <div class="today-head">
+      <div class="wd" id="th-wd"></div>
+      <div class="dt" id="th-dt"></div>
+      <div id="th-back"></div>
+    </div>
+
+    <div class="card">
+      <h3>おきた</h3>
+      <div class="rec-row" id="wake-row"></div>
+    </div>
+
+    <div class="card">
+      <h3>ねる</h3>
+      <div class="rec-row" id="sleep-row"></div>
+    </div>
+
+    <div class="card">
+      <h3>たべた</h3>
+      <div id="meal-list"></div>
+      <div style="margin-top:12px">
+        <button class="btn" id="add-meal">食べたものを足す</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>あるいた</h3>
+      <div class="rec-row" id="steps-row"></div>
+    </div>
+
+    <div class="card tidbit" id="tidbit-card" hidden>
+      <h3>まめちしき</h3>
+      <div id="tidbit-body"></div>
+    </div>
+  </section>
+
+  <!-- ============ カレンダー ============ -->
+  <section class="page" id="p-cal">
+    <div class="cal-head">
+      <button class="linkbtn" id="cal-prev">← 前の月</button>
+      <span class="mo" id="cal-mo"></span>
+      <button class="linkbtn" id="cal-next">次の月 →</button>
+    </div>
+    <div class="seg" id="cal-seg">
+      <button data-v="rec" class="on">記録</button>
+      <button data-v="photo">写真</button>
+    </div>
+    <div class="wdays"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span></div>
+    <div class="cal" id="cal"></div>
+    <p class="note" style="margin-top:14px">
+      日付をタップするとその日を開きます。記録のない日は空欄のままで大丈夫です。<br>
+      ●起きた　●寝た　●食べた　●歩いた
+    </p>
+  </section>
+
+  <!-- ============ ふりかえり ============ -->
+  <section class="page" id="p-graph">
+    <div class="cal-head">
+      <button class="linkbtn" id="g-prev">← 前の月</button>
+      <span class="mo" id="g-mo"></span>
+      <button class="linkbtn" id="g-next">次の月 →</button>
+    </div>
+
+    <div class="card">
+      <h3>おきた時刻</h3>
+      <div class="stat" id="wake-stat"></div>
+      <svg class="plot" id="wake-plot" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <div class="card">
+      <h3>ねた時刻</h3>
+      <div class="stat" id="sleep-stat"></div>
+      <svg class="plot" id="sleep-plot" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+    <div class="card">
+      <h3>この月の記録</h3>
+      <div id="tally"></div>
+    </div>
+
+    <div class="card">
+      <h3>よく食べた食材</h3>
+      <div id="topfoods"></div>
+    </div>
+
+    <div class="card">
+      <h3>この月のこと</h3>
+      <textarea id="mo-note" placeholder="忙しかった、体調がいまいちだった、など。数字の横にこれがあると読み方が変わります。"></textarea>
+    </div>
+  </section>
+
+  <!-- ============ 豆知識帳 ============ -->
+  <section class="page" id="p-book">
+    <div class="seg" id="book-seg">
+      <button data-ax="food" class="on">食材から</button>
+      <button data-ax="nut">栄養素から</button>
+    </div>
+    <p class="note" id="book-count" style="margin-bottom:14px"></p>
+    <div id="book-body"></div>
+  </section>
+
+  <!-- ============ 登録 ============ -->
+  <section class="page" id="p-reg">
+    <div class="card">
+      <h3>マイ食品</h3>
+      <p class="note" style="margin-bottom:12px">よく食べるものを登録しておくと、記録のときに名前と数値がそのまま呼び出せます。</p>
+      <div id="myfood-list"></div>
+      <button class="btn small quiet" id="add-myfood" style="margin-top:10px">食品を登録する</button>
+    </div>
+
+    <div class="card">
+      <h3>レシピ帳</h3>
+      <p class="note" style="margin-bottom:12px">具材つきで記録した料理が、ここに貯まっていきます。次から候補で出ます。</p>
+      <div id="recipe-list"></div>
+    </div>
+
+    <div class="card">
+      <h3>保存とバックアップ</h3>
+      <p class="note" id="store-mode">確認中…</p>
+      <div class="row2" style="margin-top:13px">
+        <button class="btn small quiet" id="ex-btn">書き出す</button>
+        <button class="btn small quiet" id="im-btn">読み込む</button>
+      </div>
+      <input type="file" id="im-file" accept="application/json,.json" hidden>
+      <p class="note" style="margin-top:11px">写真も含めて1つのファイルにまとめます。機種を変えるときや、念のための控えに。</p>
+    </div>
+
+    <div class="card">
+      <h3>このアプリについて</h3>
+      <p class="note">
+        目標・達成率・連続日数は表示しません。記録のない日は空欄のままです。<br><br>
+        写真は小さく圧縮して月ごとに分けて保存します。<br><br>
+        試作版のため、通知とスマートバンドの自動連携は入っていません。歩数は手入力です。<br><br>
+        豆知識は日本食品標準成分表などの一般的な栄養データをもとにした内容です。
+      </p>
+      <button class="btn small quiet" id="wipe" style="margin-top:12px">記録をすべて消す</button>
+    </div>
+  </section>
+
+  <div id="sheet-host"></div>
+  <div class="status" id="status"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  var KEY = "seikatsu-kiroku-v1";
+
+  /* ============ 豆知識データ ============ */
+  var FACTS = {
+    "玉ねぎ": { n:["炭水化物","食物繊維","カリウム"], f:["加熱すると辛みが甘みに変わる。辛み成分の硫化アリルが熱で分解されるため。","水にさらすと辛みは抜けるが、水溶性のビタミンやカリウムも一緒に流れ出る。"] },
+    "にんじん": { n:["ビタミンA","食物繊維","炭水化物"], f:["オレンジ色はβカロテン。体内で必要な分だけビタミンAに変わる。","βカロテンは脂に溶ける性質があるので、油と一緒だと吸収されやすい。"] },
+    "じゃがいも": { n:["炭水化物","ビタミンC","カリウム"], f:["いも類のビタミンCはでんぷんに守られていて、加熱しても壊れにくい。","芽と緑色になった皮にはソラニンが含まれるので、そこは取り除く。"] },
+    "キャベツ": { n:["ビタミンC","食物繊維"], f:["芯に近いほどビタミンCが多い。外葉と芯は捨てられがちだが濃い部分。","ビタミンUという別名を持つ成分が含まれ、キャベツから見つかったのが名前の由来。"] },
+    "ピーマン": { n:["ビタミンC","ビタミンA","食物繊維"], f:["ビタミンCはトマトの4倍以上。果肉に守られていて加熱に比較的強い。","赤ピーマンは緑が完熟したもの。ビタミンCもβカロテンも増える。"] },
+    "トマト": { n:["ビタミンC","カリウム","食物繊維"], f:["赤い色はリコピン。加熱しても壊れにくく、油と合わせると吸収されやすい。","うま味成分のグルタミン酸を多く含む、数少ない野菜のひとつ。"] },
+    "ほうれん草": { n:["鉄","ビタミンA","ビタミンC","食物繊維"], f:["鉄が多い野菜の代表。ただし植物性の鉄は吸収率が低く、ビタミンCと一緒だと上がる。","えぐみはシュウ酸。ゆでて水にとると減る。"] },
+    "ブロッコリー": { n:["ビタミンC","たんぱく質","食物繊維"], f:["野菜のなかではたんぱく質が多いほう。100gあたり4g前後。","ビタミンCはレモンより多い。ゆでると湯に溶け出すので短時間で。"] },
+    "きゅうり": { n:["カリウム"], f:["95%以上が水分。栄養素の量より、水分と食感を足す役割が大きい。"] },
+    "なす": { n:["食物繊維","カリウム"], f:["皮の紫はナスニンというポリフェノール。皮ごと使うと色も残る。","スポンジ状の組織で油をよく吸う。調理法でカロリーが大きく変わる野菜。"] },
+    "大根": { n:["ビタミンC","食物繊維"], f:["先のほうが辛く、葉に近いほうが甘い。辛み成分が根の先に多いため。","葉のほうがカルシウムもビタミンも多い。捨てられることが多い部分。"] },
+    "もやし": { n:["食物繊維","ビタミンC"], f:["豆の状態にはないビタミンCが、発芽の過程で作られる。","足が早く、洗って水気を切っても日持ちしない。買った日に使うのが基本。"] },
+    "白菜": { n:["ビタミンC","カリウム","食物繊維"], f:["95%が水分。鍋にすると溶け出した成分が汁に移る。"] },
+    "ごぼう": { n:["食物繊維"], f:["食物繊維が野菜のなかでもかなり多い。水溶性と不溶性の両方を含む。","切ると茶色くなるのはポリフェノールの酸化。味には影響しない。"] },
+    "かぼちゃ": { n:["ビタミンA","ビタミンE","炭水化物","食物繊維"], f:["βカロテンとビタミンEが両方多い、野菜のなかでは珍しい組み合わせ。","でんぷんが多く、野菜のなかではエネルギーが高いほう。"] },
+    "レタス": { n:["食物繊維"], f:["ほとんどが水分で、栄養価はキャベツやほうれん草より控えめ。食感担当。"] },
+    "しめじ": { n:["食物繊維","ビタミンD","ビタミンB群"], f:["きのこ類はビタミンDを含む数少ない食品。日に当てると増える。","うま味成分のグアニル酸を含む。だしの相性がいい理由。"] },
+    "しいたけ": { n:["食物繊維","ビタミンD","ビタミンB群"], f:["干すとビタミンDが大きく増える。紫外線でエルゴステロールが変化するため。","乾燥させるとうま味成分も濃くなる。だしに使われるのはこのため。"] },
+    "えのき": { n:["食物繊維","ビタミンB群"], f:["食物繊維が多く、加熱してもかさが減りにくい。"] },
+    "豚バラ肉": { n:["たんぱく質","脂質","ビタミンB群"], f:["豚肉はビタミンB1が多い食品の代表。牛や鶏の5〜10倍ほど。","バラは部位のなかで脂質が多く、もも肉と比べるとエネルギーは2倍以上。"] },
+    "豚もも肉": { n:["たんぱく質","ビタミンB群"], f:["同じ豚でもバラともも肉ではエネルギーが2倍以上違う。部位の差は大きい。"] },
+    "鶏むね肉": { n:["たんぱく質","ビタミンB群"], f:["肉のなかでもたんぱく質あたりの脂質が少ない部位。","加熱しすぎるとかたくなるのは、水分が抜けやすい構造のため。"] },
+    "鶏もも肉": { n:["たんぱく質","脂質","鉄"], f:["むね肉より脂質が多いぶん、鉄も少し多い。","皮を外すとエネルギーがかなり下がる。皮の脂が大きい。"] },
+    "牛肉": { n:["たんぱく質","鉄","脂質"], f:["動物性の鉄（ヘム鉄）を含み、植物性の鉄より吸収されやすい形。","部位による脂質の差が食品のなかでもとくに大きい。"] },
+    "ひき肉": { n:["たんぱく質","脂質"], f:["何の肉のどの部位を挽いたかで中身が変わる。同じ「ひき肉」でも幅が広い。"] },
+    "卵": { n:["たんぱく質","脂質","ビタミンA","ビタミンD"], f:["体内で作れない必須アミノ酸がバランスよく揃っている食品。","黄身にビタミンA・D・鉄が集まっていて、白身はほぼたんぱく質と水分。"] },
+    "鮭": { n:["たんぱく質","ビタミンD","脂質"], f:["身のオレンジ色はアスタキサンチン。白身魚に分類される。","ビタミンDが多い食品のひとつ。"] },
+    "さば": { n:["たんぱく質","脂質","ビタミンD"], f:["EPA・DHAという脂を多く含む。青魚に共通する特徴。","水煮の缶詰は骨まで柔らかく、カルシウムも一緒にとれる。"] },
+    "ツナ": { n:["たんぱく質","脂質"], f:["油漬けと水煮でエネルギーが2倍以上違う。缶の表示で確認できる。"] },
+    "ちくわ": { n:["たんぱく質","塩分"], f:["魚のすり身が原料でたんぱく質を含むが、塩分も一緒に入っている。"] },
+    "えび": { n:["たんぱく質"], f:["加熱で赤くなるのは、たんぱく質と結びついていた色素が離れるため。"] },
+    "牛乳": { n:["カルシウム","たんぱく質","脂質"], f:["カルシウムの吸収率が食品のなかでは高いほう。","日本人には乳糖を分解しにくい人も多い。合わない場合は無理に飲まなくていい。"] },
+    "ヨーグルト": { n:["カルシウム","たんぱく質"], f:["発酵で乳糖の一部が分解されるため、牛乳より合う人もいる。"] },
+    "チーズ": { n:["カルシウム","たんぱく質","脂質","塩分"], f:["牛乳を濃縮したものなのでカルシウムが多いが、塩分と脂質も濃くなる。"] },
+    "豆腐": { n:["たんぱく質","カルシウム"], f:["木綿と絹では水切りの度合いが違い、木綿のほうがたんぱく質もカルシウムも多い。","大豆のたんぱく質は植物性のなかでは必須アミノ酸のバランスがいい。"] },
+    "納豆": { n:["たんぱく質","食物繊維","ビタミンK"], f:["発酵の過程でビタミンK2が大きく増える。大豆の状態にはほとんどない。","ナットウキナーゼは熱に弱いので、熱々のご飯に長く置くと減る。"] },
+    "油揚げ": { n:["たんぱく質","脂質","カルシウム"], f:["豆腐を油で揚げたものなので、豆腐よりエネルギーがかなり高い。"] },
+    "ご飯": { n:["炭水化物","ビタミンB群"], f:["茶碗1杯150gで約230kcal。量の感覚をつかむ基準にしやすい。","冷めるとでんぷんの一部が変化し、消化のされ方が少し変わる。"] },
+    "食パン": { n:["炭水化物","たんぱく質","塩分"], f:["ご飯と違って製造時に塩が入るので、主食のなかでは塩分がある。"] },
+    "うどん": { n:["炭水化物"], f:["ゆで麺は水分が多く、乾麺と同じ重さでもエネルギーは半分以下。"] },
+    "パスタ": { n:["炭水化物","たんぱく質"], f:["デュラム小麦が原料で、うどんより小麦のたんぱく質が多い。"] },
+    "そば": { n:["炭水化物","たんぱく質","食物繊維"], f:["そば粉の割合で中身が大きく変わる。「そば」でも小麦が主のものもある。","ルチンという成分を含み、これは麺類ではそば特有。"] },
+    "バター": { n:["脂質","ビタミンA"], f:["約8割が脂質。少量でもエネルギーが大きく動く食品。"] },
+    "味噌": { n:["塩分","たんぱく質"], f:["大豆の発酵食品で、たんぱく質も含むが塩分が主な特徴。","種類によって塩分量がかなり違う。"] },
+    "醤油": { n:["塩分"], f:["大さじ1で約2.6gの食塩相当量。調味料のなかでは量が読みやすい。"] },
+    "ごま油": { n:["脂質","ビタミンE"], f:["どの油もほぼ100%が脂質で、1g約9kcal。種類で大きくは変わらない。"] },
+    "マヨネーズ": { n:["脂質"], f:["約7割が脂質。大さじ1で約80kcalと、量のわりにエネルギーが大きい。"] },
+    "バナナ": { n:["炭水化物","カリウム","食物繊維"], f:["果物のなかでは炭水化物が多め。1本で約90kcal。","熟すほどでんぷんが糖に変わって甘くなる。"] },
+    "りんご": { n:["食物繊維","炭水化物"], f:["皮に食物繊維とポリフェノールが多い。皮ごとだと量が変わる。"] },
+    "みかん": { n:["ビタミンC","食物繊維"], f:["白い筋にも食物繊維が含まれる。","βクリプトキサンチンという色素を多く含み、温州みかんはとくに多い。"] },
+    "海苔": { n:["たんぱく質","食物繊維","ビタミンA","鉄"], f:["乾燥重量あたりで見るとたんぱく質もビタミンも多いが、1枚3g程度なので実際の量は控えめ。"] },
+    "わかめ": { n:["食物繊維","カルシウム"], f:["水で戻すと10倍以上にふくらむ。乾燥の状態と戻した後で重さの感覚がまるで違う。"] },
+    "ごま": { n:["脂質","カルシウム","鉄"], f:["外皮がかたく、そのままだと消化されにくい。すると中身が出る。"] },
+    "チョコレート": { n:["脂質","炭水化物"], f:["カカオ分が高いほど砂糖が減って脂質が増える。エネルギーはあまり下がらない。"] },
+    "砂糖": { n:["炭水化物"], f:["1g約4kcal。大さじ1で約35kcal。"] }
+  };
+
+  var NUT_ORDER = ["たんぱく質","脂質","炭水化物","食物繊維","ビタミンA","ビタミンB群","ビタミンC","ビタミンD","ビタミンE","ビタミンK","カルシウム","鉄","カリウム","塩分"];
+
+  var WD = ["日","月","火","水","木","金","土"];
+  var DAYCOL = { 0:"#B85C7A", 1:"#8189C4", 2:"#E08155", 3:"#4FA3A0", 4:"#7BA75C", 5:"#D3A03C", 6:"#5B8AC4" };
+
+  /* ============ state ============ */
+  var S = { days:{}, myFoods:[], recipes:{}, monthNotes:{} };
+  var sel = null;          // 選択中の日付キー
+  var calMonth = null;     // カレンダー表示月
+  var gMonth = null;       // ふりかえり表示月
+  var bookAxis = "food";
+  var saveT = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function dkey(d) { return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+  function pdate(k) { var a = k.split("-"); return new Date(+a[0], +a[1]-1, +a[2]); }
+  function mkey(d) { return d.getFullYear() + "-" + pad(d.getMonth()+1); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  var TODAY = new Date(); TODAY.setHours(0,0,0,0);
+  var TKEY = dkey(TODAY);
+
+  function day(k, make) {
+    if (!S.days[k] && make) S.days[k] = { wake:null, sleep:null, steps:null, meals:[] };
+    return S.days[k] || null;
+  }
+  function tidy(k) {
+    var d = S.days[k];
+    if (d && !d.wake && !d.sleep && d.steps == null && (!d.meals || !d.meals.length)) delete S.days[k];
+  }
+
+  /* ============ 保存のしくみ ============ */
+  var Store = (function () {
+    var mode = "memory", mem = {}, db = null;
+
+    function idbOpen() {
+      return new Promise(function (res, rej) {
+        if (!window.indexedDB) { rej(new Error("no idb")); return; }
+        var rq;
+        try { rq = window.indexedDB.open("kiroku-db", 1); }
+        catch (e) { rej(e); return; }
+        rq.onupgradeneeded = function () { rq.result.createObjectStore("kv"); };
+        rq.onsuccess = function () { res(rq.result); };
+        rq.onerror = function () { rej(rq.error || new Error("idb error")); };
+        rq.onblocked = function () { rej(new Error("blocked")); };
+        setTimeout(function () { rej(new Error("timeout")); }, 4000);
+      });
+    }
+    function idbGet(k) {
+      return new Promise(function (res, rej) {
+        var r = db.transaction("kv", "readonly").objectStore("kv").get(k);
+        r.onsuccess = function () { res(r.result != null ? r.result : null); };
+        r.onerror = function () { rej(r.error); };
+      });
+    }
+    function idbSet(k, v) {
+      return new Promise(function (res, rej) {
+        var tx = db.transaction("kv", "readwrite");
+        tx.objectStore("kv").put(v, k);
+        tx.oncomplete = function () { res(); };
+        tx.onerror = function () { rej(tx.error); };
+        tx.onabort = function () { rej(tx.error); };
+      });
+    }
+
+    function init() {
+      try {
+        if (typeof window.storage !== "undefined" && window.storage && typeof window.storage.get === "function") {
+          mode = "claude"; return Promise.resolve(mode);
+        }
+      } catch (e) {}
+      return idbOpen().then(function (d) { db = d; mode = "idb"; return mode; })
+        .catch(function () {
+          try {
+            window.localStorage.setItem("__probe__", "1");
+            window.localStorage.removeItem("__probe__");
+            mode = "local";
+          } catch (e) { mode = "memory"; }
+          return mode;
+        });
+    }
+    function get(k) {
+      if (mode === "claude") return window.storage.get(k).then(function (r) { return r && r.value != null ? r.value : null; }).catch(function () { return null; });
+      if (mode === "idb") return idbGet(k).catch(function () { return null; });
+      if (mode === "local") { try { return Promise.resolve(window.localStorage.getItem(k)); } catch (e) { return Promise.resolve(null); } }
+      return Promise.resolve(mem[k] != null ? mem[k] : null);
+    }
+    function set(k, v) {
+      if (mode === "claude") return window.storage.set(k, v);
+      if (mode === "idb") return idbSet(k, v);
+      if (mode === "local") return new Promise(function (res, rej) { try { window.localStorage.setItem(k, v); res(); } catch (e) { rej(e); } });
+      mem[k] = v; return Promise.resolve();
+    }
+    return { init: init, get: get, set: set, mode: function () { return mode; } };
+  })();
+
+  function photoCap() {
+    var m = Store.mode();
+    if (m === "idb") return 60000000;
+    if (m === "claude") return 4200000;
+    if (m === "local") return 3200000;
+    return 60000000;
+  }
+
+  var MODE_TEXT = {
+    idb:    "この端末に保存されています。ホーム画面から開いているかぎり記録は残ります。写真もたくさん入ります。",
+    claude: "Claudeの中に保存されています。このまま使えば記録は残ります。",
+    local:  "このブラウザに保存されています。同じブラウザで開けば記録は残ります。履歴やサイトデータを消すと一緒に消えるので、ときどき書き出しておくと安心です。",
+    memory: "この環境では自動保存ができません。閉じると消えるので、使い終わりに必ず「書き出す」で控えを取ってください。"
+  };
+
+  function load() {
+    return Store.get(KEY).then(function (v) {
+      if (v) { var p = JSON.parse(v); if (p && p.days) S = p; }
+    }).catch(function () { /* 初回 */ });
+  }
+  function save() {
+    clearTimeout(saveT);
+    saveT = setTimeout(function () {
+      Store.set(KEY, JSON.stringify(S))
+        .then(function () { flash("保存しました"); })
+        .catch(function () { flash("保存できませんでした。容量がいっぱいかもしれません。"); });
+    }, 300);
+  }
+
+  /* ============ 写真 ============ */
+  var PH = {}, phLoaded = {};
+  function mkOf(dayKey) { return dayKey.slice(0, 7); }
+  function phKey(mk) { return "seikatsu-photos-" + mk; }
+
+  function loadMonthPhotos(mk) {
+    if (phLoaded[mk]) return Promise.resolve();
+    return Store.get(phKey(mk)).then(function (v) {
+      PH[mk] = v ? JSON.parse(v) : {};
+      phLoaded[mk] = true;
+    }).catch(function () { PH[mk] = {}; phLoaded[mk] = true; });
+  }
+  function savePhotos(mk) {
+    return Store.set(phKey(mk), JSON.stringify(PH[mk] || {}))
+      .then(function () { flash("保存しました"); })
+      .catch(function () { flash("写真を保存できませんでした。今月の写真が多すぎるかもしれません。"); });
+  }
+  function getPhoto(dayKey, id) {
+    var m = PH[mkOf(dayKey)];
+    return m ? (m[id] || null) : null;
+  }
+  function setPhoto(dayKey, id, data) {
+    var mk = mkOf(dayKey);
+    PH[mk] = PH[mk] || {}; phLoaded[mk] = true;
+    if (data) PH[mk][id] = data; else delete PH[mk][id];
+    return savePhotos(mk);
+  }
+  function monthPhotoBytes(mk) {
+    var m = PH[mk]; if (!m) return 0;
+    var n = 0; for (var k in m) if (m.hasOwnProperty(k)) n += m[k].length;
+    return n;
+  }
+  function shrink(file, cb) {
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function () {
+      var MAX = 300, w = img.naturalWidth, h = img.naturalHeight;
+      var s = Math.min(1, MAX / Math.max(w, h));
+      var cw = Math.max(1, Math.round(w * s)), ch = Math.max(1, Math.round(h * s));
+      var c = document.createElement("canvas"); c.width = cw; c.height = ch;
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cw, ch);
+      ctx.drawImage(img, 0, 0, cw, ch);
+      URL.revokeObjectURL(url);
+      try { cb(c.toDataURL("image/jpeg", 0.58)); } catch (e) { cb(null); }
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); cb(null); };
+    img.src = url;
+  }
+  function viewPhoto(src) {
+    sheet("写真", '<img class="full" src="' + src + '" alt="">'
+      + '<div class="sheet-actions"><button class="btn quiet" id="vx">とじる</button></div>',
+      function () { $("vx").onclick = closeSheet; });
+  }
+  var flashT = null;
+  function flash(msg) {
+    var el = $("status"); el.textContent = msg; el.classList.add("show");
+    clearTimeout(flashT); flashT = setTimeout(function(){ el.classList.remove("show"); }, 1700);
+  }
+
+  /* ============ 時刻 ============ */
+  function nowHM() { var n = new Date(); return pad(n.getHours()) + ":" + pad(n.getMinutes()); }
+  function round15(hm) {
+    var a = hm.split(":"), h = +a[0], m = Math.round(+a[1] / 15) * 15;
+    if (m === 60) { m = 0; h = (h + 1) % 24; }
+    return pad(h) + ":" + pad(m);
+  }
+  function timeOptions(cur) {
+    var out = "";
+    for (var h = 0; h < 24; h++) for (var m = 0; m < 60; m += 15) {
+      var v = pad(h) + ":" + pad(m);
+      out += '<option value="' + v + '"' + (v === cur ? " selected" : "") + ">" + v + "</option>";
+    }
+    return out;
+  }
+
+  /* ============ シート ============ */
+  function sheet(title, html, onMount) {
+    var host = $("sheet-host");
+    host.innerHTML = '<div class="sheet-bg" id="sbg"><div class="sheet" role="dialog" aria-modal="true">'
+      + '<h2>' + esc(title) + '</h2>' + html + '</div></div>';
+    $("sbg").addEventListener("click", function (e) { if (e.target.id === "sbg") closeSheet(); });
+    if (onMount) onMount();
+  }
+  function closeSheet() { $("sheet-host").innerHTML = ""; }
+
+  /* ============ 食材の照合 ============ */
+  var FOOD_KEYS = Object.keys(FACTS);
+  function matchFoods(text) {
+    var hits = [];
+    if (!text) return hits;
+    for (var i = 0; i < FOOD_KEYS.length; i++) if (text.indexOf(FOOD_KEYS[i]) >= 0) hits.push(FOOD_KEYS[i]);
+    return hits;
+  }
+  function foodsOn(k) {
+    var d = S.days[k], set = {};
+    if (!d) return [];
+    (d.meals || []).forEach(function (m) {
+      matchFoods(m.name).forEach(function (f) { set[f] = 1; });
+      (m.items || []).forEach(function (it) { matchFoods(it).forEach(function (f) { set[f] = 1; }); });
+    });
+    return Object.keys(set);
+  }
+  function allFoodsEver() {
+    var set = {};
+    Object.keys(S.days).forEach(function (k) { foodsOn(k).forEach(function (f) { set[f] = 1; }); });
+    return set;
+  }
+
+  /* ============ きょう ============ */
+  function renderToday() {
+    var d0 = pdate(sel);
+    var col = DAYCOL[d0.getDay()];
+    document.documentElement.style.setProperty("--d", col);
+    $("daybar").style.background = col;
+
+    $("th-wd").textContent = (sel === TKEY ? "きょうは " : "") + WD[d0.getDay()] + "曜日";
+    $("th-dt").innerHTML = (d0.getMonth()+1) + "月" + d0.getDate() + "日<small>" + d0.getFullYear() + "</small>";
+    $("th-back").innerHTML = sel === TKEY ? "" : '<button class="back-today" id="bk">今日に戻る</button>';
+    if ($("bk")) $("bk").onclick = function () { sel = TKEY; renderAll(); };
+
+    var d = S.days[sel];
+
+    // おきた / ねる
+    ["wake","sleep"].forEach(function (kind) {
+      var row = $(kind === "wake" ? "wake-row" : "sleep-row");
+      var v = d && d[kind];
+      row.innerHTML = v
+        ? '<span class="big-time">' + v + '</span><button class="btn quiet small" data-e="' + kind + '">直す</button>'
+        : '<span class="none">まだ記録なし</span><button class="btn" data-r="' + kind + '">' + (kind === "wake" ? "おきた" : "ねる") + '</button>';
+      var b1 = row.querySelector("[data-r]"), b2 = row.querySelector("[data-e]");
+      if (b1) b1.onclick = function () { day(sel, true)[kind] = round15(nowHM()); save(); renderAll(); };
+      if (b2) b2.onclick = function () { timeSheet(kind); };
+    });
+
+    // 歩数
+    var st = $("steps-row");
+    var sv = d && d.steps;
+    st.innerHTML = (sv != null)
+      ? '<span class="big-time">' + sv.toLocaleString() + '<small>歩</small></span><button class="btn quiet small" id="ed-steps">直す</button>'
+      : '<span class="none">まだ記録なし</span><button class="btn" id="ed-steps">歩数を入れる</button>';
+    $("ed-steps").onclick = stepsSheet;
+
+    // 食事
+    var ml = $("meal-list");
+    var meals = (d && d.meals ? d.meals.slice() : []).sort(function (a, b) { return a.time < b.time ? -1 : 1; });
+    if (!meals.length) {
+      ml.innerHTML = '<p class="empty">まだ記録なし</p>';
+    } else {
+      ml.innerHTML = meals.map(function (m) {
+        var sub = [];
+        if (m.grams) sub.push(m.grams + "g" + (m.measured ? "（測った）" : "（目分量）"));
+        if (m.kcal != null) sub.push(Math.round(m.kcal) + "kcal");
+        var kindLabel = { meal:"", snack:"間食", drink:"お酒" }[m.kind] || "";
+        var src = m.hasPhoto ? getPhoto(sel, m.id) : null;
+        return '<div class="meal" data-id="' + m.id + '">'
+          + '<div class="t">' + m.time + '</div>'
+          + (src ? '<img class="ph" src="' + src + '" alt="" data-ph="' + m.id + '">' : '')
+          + '<div class="b"><div class="nm">' + esc(m.name) + (kindLabel ? ' <span class="kind">' + kindLabel + '</span>' : '') + '</div>'
+          + (sub.length ? '<div class="sub">' + sub.join(" / ") + '</div>' : '')
+          + (m.items && m.items.length ? '<div class="chips">' + m.items.map(function (i) { return '<span class="chip">' + esc(i) + '</span>'; }).join("") + '</div>' : '')
+          + '</div></div>';
+      }).join("");
+      Array.prototype.forEach.call(ml.querySelectorAll(".meal"), function (el) {
+        el.onclick = function (e) {
+          if (e.target && e.target.getAttribute("data-ph")) {
+            viewPhoto(getPhoto(sel, e.target.getAttribute("data-ph")));
+            return;
+          }
+          mealSheet(el.getAttribute("data-id"));
+        };
+      });
+    }
+    $("add-meal").onclick = function () { mealSheet(null); };
+
+    renderTidbit();
+  }
+
+  function renderTidbit() {
+    var foods = foodsOn(sel);
+    var card = $("tidbit-card");
+    if (!foods.length) { card.hidden = true; return; }
+    card.hidden = false;
+    var seed = 0; for (var i = 0; i < sel.length; i++) seed += sel.charCodeAt(i);
+    var f = foods[seed % foods.length];
+    var data = FACTS[f];
+    var fact = data.f[seed % data.f.length];
+    $("tidbit-body").innerHTML = '<div class="food">' + esc(f) + '</div><p>' + esc(fact) + '</p>'
+      + '<div class="chips tags">' + data.n.map(function (n) { return '<span class="chip">' + esc(n) + '</span>'; }).join("") + '</div>';
+  }
+
+  /* ============ シート：時刻 ============ */
+  function timeSheet(kind) {
+    var d = day(sel, true);
+    var cur = d[kind] || round15(nowHM());
+    sheet(kind === "wake" ? "おきた時刻" : "ねた時刻",
+      '<label class="f"><span>時刻（15分きざみ）</span><select id="tsel">' + timeOptions(cur) + '</select></label>'
+      + '<p class="hint">あとから入れた記録も、その日押した記録と同じ扱いです。</p>'
+      + '<div class="sheet-actions"><button class="btn quiet" id="tdel">記録を消す</button><button class="btn" id="tok">決定</button></div>',
+      function () {
+        $("tok").onclick = function () { day(sel, true)[kind] = $("tsel").value; save(); closeSheet(); renderAll(); };
+        $("tdel").onclick = function () { if (S.days[sel]) { S.days[sel][kind] = null; tidy(sel); } save(); closeSheet(); renderAll(); };
+      });
+  }
+
+  /* ============ シート：歩数 ============ */
+  function stepsSheet() {
+    var d = S.days[sel];
+    var cur = d && d.steps != null ? d.steps : "";
+    sheet("あるいた歩数",
+      '<label class="f"><span>歩数</span><input type="number" id="stp" inputmode="numeric" value="' + cur + '" placeholder="4000"></label>'
+      + '<p class="hint">スマートバンドの数字を写す用です。目標は置きません。</p>'
+      + '<div class="sheet-actions"><button class="btn quiet" id="sdel">記録を消す</button><button class="btn" id="sok">決定</button></div>',
+      function () {
+        $("sok").onclick = function () {
+          var v = parseInt($("stp").value, 10);
+          day(sel, true).steps = isNaN(v) ? null : v; tidy(sel); save(); closeSheet(); renderAll();
+        };
+        $("sdel").onclick = function () { if (S.days[sel]) { S.days[sel].steps = null; tidy(sel); } save(); closeSheet(); renderAll(); };
+      });
+  }
+
+  /* ============ シート：食事 ============ */
+  function mealSheet(id) {
+    var d = day(sel, true);
+    var m = id ? (d.meals || []).filter(function (x) { return x.id === id; })[0] : null;
+    var draft = m ? JSON.parse(JSON.stringify(m)) : {
+      id: "m" + Date.now(), time: round15(nowHM()), name: "", kind: "meal",
+      items: [], grams: null, measured: true, kcal: null, protein: null, hasPhoto: false
+    };
+    var photoData = draft.hasPhoto ? getPhoto(sel, draft.id) : null;
+    var photoDirty = false;
+
+    sheet(m ? "食べたものを直す" : "食べたものを足す",
+        '<div class="ph-pick" id="mphwrap"></div>'
+      + '<input type="file" id="mphfile" accept="image/*" hidden>'
+      + '<label class="f"><span>なに（自由に書いてください）</span>'
+      + '<input type="text" id="mname" value="' + esc(draft.name) + '" placeholder="チョコのかかったクッキー"></label>'
+      + '<div id="msugg"></div>'
+      + '<label class="f"><span>時刻（15分きざみ）</span><select id="mtime">' + timeOptions(draft.time) + '</select></label>'
+      + '<label class="f"><span>種類</span><div class="toggle" id="mkind">'
+      + '<button data-k="meal">食事</button><button data-k="snack">間食</button><button data-k="drink">お酒</button></div></label>'
+      + '<div class="row2">'
+      + '<label class="f"><span>量（g・任意）</span><input type="number" id="mg" inputmode="numeric" value="' + (draft.grams == null ? "" : draft.grams) + '"></label>'
+      + '<label class="f"><span>測り方</span><div class="toggle" id="mmeas"><button data-m="1">測った</button><button data-m="0">目分量</button></div></label>'
+      + '</div>'
+      + '<div class="row2">'
+      + '<label class="f"><span>エネルギー（kcal・任意）</span><input type="number" id="mkcal" inputmode="numeric" value="' + (draft.kcal == null ? "" : draft.kcal) + '"></label>'
+      + '<label class="f"><span>たんぱく質（g・任意）</span><input type="number" id="mpro" inputmode="numeric" value="' + (draft.protein == null ? "" : draft.protein) + '"></label>'
+      + '</div>'
+      + '<label class="f"><span>具材（任意・入れなくても記録は完成です）</span>'
+      + '<div class="chipedit" id="mitems"></div>'
+      + '<div class="row2"><input type="text" id="mitemin" placeholder="豚バラ肉"><button class="btn quiet small" id="mitemadd">足す</button></div></label>'
+      + '<div id="mrec"></div>'
+      + '<p class="hint">数値は空のままでも記録として成立します。名前だけで大丈夫です。</p>'
+      + '<div class="sheet-actions">'
+      + (m ? '<button class="btn quiet" id="mdel">消す</button>' : '')
+      + '<button class="btn" id="mok">保存</button></div>',
+      function () {
+        function paintKind() {
+          Array.prototype.forEach.call($("mkind").children, function (b) { b.classList.toggle("on", b.getAttribute("data-k") === draft.kind); });
+        }
+        function paintMeas() {
+          Array.prototype.forEach.call($("mmeas").children, function (b) { b.classList.toggle("on", (b.getAttribute("data-m") === "1") === !!draft.measured); });
+        }
+        function paintItems() {
+          $("mitems").innerHTML = draft.items.length
+            ? draft.items.map(function (it, i) { return '<span class="chip pick" data-i="' + i + '">' + esc(it) + ' ×</span>'; }).join("")
+            : '<span class="hint">なし</span>';
+          Array.prototype.forEach.call($("mitems").querySelectorAll(".chip"), function (c) {
+            c.onclick = function () { draft.items.splice(+c.getAttribute("data-i"), 1); paintItems(); };
+          });
+        }
+        function paintRecipe() {
+          var r = S.recipes[draft.name.trim()];
+          var host = $("mrec");
+          if (!r || !r.length) { host.innerHTML = ""; return; }
+          var missing = r.filter(function (x) { return draft.items.indexOf(x) < 0; });
+          if (!missing.length) { host.innerHTML = ""; return; }
+          host.innerHTML = '<p class="hint" style="margin-bottom:6px">前回の具材</p><div class="chipedit" id="mrecc">'
+            + missing.map(function (x) { return '<span class="chip" data-v="' + esc(x) + '">+ ' + esc(x) + '</span>'; }).join("") + '</div>';
+          Array.prototype.forEach.call($("mrecc").querySelectorAll(".chip"), function (c) {
+            c.onclick = function () { draft.items.push(c.getAttribute("data-v")); paintItems(); paintRecipe(); };
+          });
+        }
+        function paintSugg() {
+          var q = $("mname").value.trim();
+          var host = $("msugg");
+          if (!q) { host.innerHTML = ""; return; }
+          var hits = S.myFoods.filter(function (f) { return f.name.indexOf(q) >= 0 && f.name !== q; }).slice(0, 4);
+          if (!hits.length) { host.innerHTML = ""; return; }
+          host.innerHTML = '<div class="sugg">' + hits.map(function (f, i) {
+            return '<button data-i="' + i + '">' + esc(f.name) + '<small>登録済み' + (f.kcal != null ? " / " + f.kcal + "kcal per " + f.per + "g" : "") + '</small></button>';
+          }).join("") + '</div>';
+          Array.prototype.forEach.call(host.querySelectorAll("button"), function (b) {
+            b.onclick = function () {
+              var f = hits[+b.getAttribute("data-i")];
+              $("mname").value = f.name;
+              var g = parseFloat($("mg").value);
+              if (!isNaN(g) && f.kcal != null && f.per) {
+                $("mkcal").value = Math.round(f.kcal * g / f.per);
+                if (f.protein != null) $("mpro").value = (f.protein * g / f.per).toFixed(1);
+              }
+              host.innerHTML = ""; paintRecipe();
+            };
+          });
+        }
+
+        function paintPhoto() {
+          var w = $("mphwrap");
+          w.innerHTML = photoData
+            ? '<img src="' + photoData + '" alt=""><button class="btn quiet small" id="phdel">写真を消す</button>'
+            : '<button class="btn quiet small" id="phadd">写真をとる / 選ぶ</button><span class="hint">なくても大丈夫です</span>';
+          if ($("phadd")) $("phadd").onclick = function () { $("mphfile").click(); };
+          if ($("phdel")) $("phdel").onclick = function () { photoData = null; photoDirty = true; paintPhoto(); };
+        }
+        $("mphfile").onchange = function (e) {
+          var f = e.target.files && e.target.files[0];
+          if (!f) return;
+          shrink(f, function (data) {
+            if (!data) { flash("この写真は読み込めませんでした"); return; }
+            photoData = data; photoDirty = true; paintPhoto();
+          });
+        };
+
+        paintKind(); paintMeas(); paintItems(); paintRecipe(); paintPhoto();
+
+        Array.prototype.forEach.call($("mkind").children, function (b) {
+          b.onclick = function () { draft.kind = b.getAttribute("data-k"); paintKind(); };
+        });
+        Array.prototype.forEach.call($("mmeas").children, function (b) {
+          b.onclick = function () { draft.measured = b.getAttribute("data-m") === "1"; paintMeas(); };
+        });
+        $("mitemadd").onclick = function () {
+          var v = $("mitemin").value.trim();
+          if (v) { draft.items.push(v); $("mitemin").value = ""; paintItems(); paintRecipe(); }
+        };
+        $("mitemin").onkeydown = function (e) { if (e.key === "Enter") { e.preventDefault(); $("mitemadd").click(); } };
+        $("mname").oninput = function () { paintSugg(); paintRecipe(); };
+
+        $("mok").onclick = function () {
+          draft.name = $("mname").value.trim();
+          if (!draft.name) { flash("名前を入れてください"); return; }
+          draft.time = $("mtime").value;
+          var g = parseFloat($("mg").value); draft.grams = isNaN(g) ? null : g;
+          var kc = parseFloat($("mkcal").value); draft.kcal = isNaN(kc) ? null : kc;
+          var pr = parseFloat($("mpro").value); draft.protein = isNaN(pr) ? null : pr;
+
+          draft.hasPhoto = !!photoData;
+
+          var dd = day(sel, true);
+          dd.meals = dd.meals || [];
+          if (m) { dd.meals = dd.meals.map(function (x) { return x.id === draft.id ? draft : x; }); }
+          else { dd.meals.push(draft); }
+
+          if (draft.items.length) S.recipes[draft.name] = draft.items.slice();
+
+          var mk = mkOf(sel);
+          if (photoDirty) {
+            if (photoData && monthPhotoBytes(mk) + photoData.length > photoCap()) {
+              flash("今月の写真がいっぱいです。書き出して控えを取ってください。");
+            } else {
+              setPhoto(sel, draft.id, photoData);
+            }
+          }
+          save(); closeSheet(); renderAll();
+        };
+        if ($("mdel")) $("mdel").onclick = function () {
+          var dd = S.days[sel];
+          if (dd) { dd.meals = (dd.meals || []).filter(function (x) { return x.id !== draft.id; }); tidy(sel); }
+          setPhoto(sel, draft.id, null);
+          save(); closeSheet(); renderAll();
+        };
+      });
+  }
+
+  /* ============ カレンダー ============ */
+  var calView = "rec";
+
+  function dayFirstPhoto(k) {
+    var d = S.days[k];
+    if (!d || !d.meals) return null;
+    var ms = d.meals.slice().sort(function (a, b) { return a.time < b.time ? -1 : 1; });
+    for (var i = 0; i < ms.length; i++) {
+      if (ms[i].hasPhoto) { var p = getPhoto(k, ms[i].id); if (p) return p; }
+    }
+    return null;
+  }
+
+  function renderCal() {
+    Array.prototype.forEach.call($("cal-seg").children, function (b) {
+      b.classList.toggle("on", b.getAttribute("data-v") === calView);
+      b.onclick = function () { calView = b.getAttribute("data-v"); renderAll(); };
+    });
+
+    var y = calMonth.getFullYear(), mo = calMonth.getMonth();
+    $("cal-mo").textContent = y + "年" + (mo + 1) + "月";
+    $("cal").className = "cal" + (calView === "photo" ? " photo-grid" : "");
+
+    var first = new Date(y, mo, 1);
+    var lead = (first.getDay() + 6) % 7;
+    var last = new Date(y, mo + 1, 0).getDate();
+    var html = "";
+    for (var i = 0; i < lead; i++) html += '<div class="cell blank"></div>';
+    for (var dnum = 1; dnum <= last; dnum++) {
+      var dt = new Date(y, mo, dnum), k = dkey(dt), d = S.days[k];
+      var cls = "cell" + (k === TKEY ? " today" : "") + (k === sel ? " sel" : "");
+      if (calView === "photo") {
+        var src = dayFirstPhoto(k);
+        html += '<button class="' + cls + (src ? " has" : "") + '" data-k="' + k + '">'
+          + '<span class="n">' + dnum + '</span>'
+          + (src ? '<img src="' + src + '" alt="">' : '') + '</button>';
+      } else {
+        var marks = "";
+        if (d) {
+          if (d.wake) marks += '<span class="m" style="background:' + DAYCOL[dt.getDay()] + '"></span>';
+          if (d.sleep) marks += '<span class="m" style="background:#616A6E"></span>';
+          if (d.meals && d.meals.length) marks += '<span class="m" style="background:#D3A03C"></span>';
+          if (d.steps != null) marks += '<span class="m" style="background:#7BA75C"></span>';
+        }
+        html += '<button class="' + cls + '" data-k="' + k + '">'
+          + '<span class="n">' + dnum + '</span><span class="marks">' + marks + '</span></button>';
+      }
+    }
+    $("cal").innerHTML = html;
+    Array.prototype.forEach.call($("cal").querySelectorAll(".cell[data-k]"), function (c) {
+      c.onclick = function () { sel = c.getAttribute("data-k"); go("today"); };
+    });
+  }
+
+  /* ============ ふりかえり ============ */
+  function monthKeys(dt) {
+    var y = dt.getFullYear(), mo = dt.getMonth(), last = new Date(y, mo + 1, 0).getDate(), out = [];
+    for (var i = 1; i <= last; i++) out.push(dkey(new Date(y, mo, i)));
+    return out;
+  }
+  function hm2n(hm, shift) {
+    var a = hm.split(":"), v = +a[0] + (+a[1]) / 60;
+    if (shift && v < 12) v += 24;
+    return v;
+  }
+  function n2hm(v) {
+    var w = ((v % 24) + 24) % 24, h = Math.floor(w), m = Math.round((w - h) * 60);
+    if (m === 60) { m = 0; h = (h + 1) % 24; }
+    return pad(h) + ":" + pad(m);
+  }
+
+  function plot(svgId, statId, kind) {
+    var keys = monthKeys(gMonth);
+    var shift = kind === "sleep";
+    var pts = [];
+    keys.forEach(function (k, i) {
+      var d = S.days[k];
+      if (d && d[kind]) pts.push({ x: i + 1, y: hm2n(d[kind], shift) });
+    });
+    var svg = $(svgId), stat = $(statId);
+    if (!pts.length) {
+      svg.innerHTML = '<text x="160" y="78" text-anchor="middle" fill="#949C9F" font-size="11">記録がありません</text>';
+      stat.innerHTML = "";
+      return;
+    }
+    var ys = pts.map(function (p) { return p.y; });
+    var lo = Math.floor(Math.min.apply(null, ys) - 1), hi = Math.ceil(Math.max.apply(null, ys) + 1);
+    if (hi - lo < 4) { hi = lo + 4; }
+    var avg = ys.reduce(function (a, b) { return a + b; }, 0) / ys.length;
+    var srt = ys.slice().sort(function (a, b) { return a - b; });
+    var med = srt.length % 2 ? srt[(srt.length - 1) / 2] : (srt[srt.length/2 - 1] + srt[srt.length/2]) / 2;
+
+    var L = 36, R = 8, T = 10, B = 20, W = 320, H = 150;
+    var days = keys.length;
+    function px(x) { return L + (x - 1) / (days - 1) * (W - L - R); }
+    function py(y) { return T + (y - lo) / (hi - lo) * (H - T - B); }
+
+    var g = "";
+    for (var t = Math.ceil(lo); t <= hi; t++) {
+      if ((hi - lo) > 8 && t % 2) continue;
+      var yy = py(t);
+      g += '<line x1="' + L + '" y1="' + yy.toFixed(1) + '" x2="' + (W - R) + '" y2="' + yy.toFixed(1) + '" stroke="#E7E9E1" stroke-width="1"/>';
+      g += '<text x="' + (L - 5) + '" y="' + (yy + 3).toFixed(1) + '" text-anchor="end" fill="#949C9F" font-size="8">' + n2hm(t) + '</text>';
+    }
+    g += '<line x1="' + L + '" y1="' + py(avg).toFixed(1) + '" x2="' + (W - R) + '" y2="' + py(avg).toFixed(1) + '" stroke="var(--d)" stroke-width="1" stroke-dasharray="3 3" opacity=".8"/>';
+    [1, 10, 20, days].forEach(function (dd) {
+      g += '<text x="' + px(dd).toFixed(1) + '" y="' + (H - 5) + '" text-anchor="middle" fill="#949C9F" font-size="8">' + dd + '</text>';
+    });
+    pts.forEach(function (p) {
+      g += '<circle cx="' + px(p.x).toFixed(1) + '" cy="' + py(p.y).toFixed(1) + '" r="3.2" fill="var(--d)" opacity=".85"/>';
+    });
+    svg.innerHTML = g;
+    stat.innerHTML = '<div><span>平均</span><strong>' + n2hm(avg) + '</strong></div>'
+      + '<div><span>真ん中</span><strong>' + n2hm(med) + '</strong></div>'
+      + '<div><span>記録した日</span><strong>' + pts.length + '</strong></div>';
+  }
+
+  function renderGraph() {
+    $("g-mo").textContent = gMonth.getFullYear() + "年" + (gMonth.getMonth() + 1) + "月";
+    plot("wake-plot", "wake-stat", "wake");
+    plot("sleep-plot", "sleep-stat", "sleep");
+
+    var keys = monthKeys(gMonth);
+    var w = 0, s = 0, meals = 0, snack = 0, drink = 0, stp = 0, counts = {};
+    keys.forEach(function (k) {
+      var d = S.days[k]; if (!d) return;
+      if (d.wake) w++;
+      if (d.sleep) s++;
+      if (d.steps != null) stp++;
+      (d.meals || []).forEach(function (m) {
+        if (m.kind === "snack") snack++; else if (m.kind === "drink") drink++; else meals++;
+      });
+      foodsOn(k).forEach(function (f) { counts[f] = (counts[f] || 0) + 1; });
+    });
+    $("tally").innerHTML = [
+      ["おきた記録", w + " 日"], ["ねた記録", s + " 日"],
+      ["食事", meals + " 回"], ["間食", snack + " 回"], ["お酒", drink + " 回"],
+      ["歩数の記録", stp + " 日"]
+    ].map(function (r) { return '<div class="tally"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>'; }).join("");
+
+    var top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, 10);
+    $("topfoods").innerHTML = top.length
+      ? '<div class="chips">' + top.map(function (f) { return '<span class="chip">' + esc(f) + ' ' + counts[f] + '</span>'; }).join("") + '</div>'
+      : '<p class="empty">具材を記録すると、ここに出ます。</p>';
+
+    var mk = mkey(gMonth);
+    $("mo-note").value = S.monthNotes[mk] || "";
+    $("mo-note").oninput = function () { S.monthNotes[mk] = $("mo-note").value; save(); };
+  }
+
+  /* ============ 豆知識帳 ============ */
+  function renderBook() {
+    var known = allFoodsEver();
+    var nKnown = Object.keys(known).length;
+    $("book-count").textContent = nKnown + " / " + FOOD_KEYS.length + " 品目。記録した食材のカードが開きます。";
+
+    Array.prototype.forEach.call($("book-seg").children, function (b) {
+      b.classList.toggle("on", b.getAttribute("data-ax") === bookAxis);
+      b.onclick = function () { bookAxis = b.getAttribute("data-ax"); renderBook(); };
+    });
+
+    var host = $("book-body"), html = "";
+    if (bookAxis === "food") {
+      html = '<div class="grid-cards">' + FOOD_KEYS.map(function (f) {
+        return '<button class="gc' + (known[f] ? "" : " locked") + '" data-f="' + esc(f) + '">' + esc(f) + '</button>';
+      }).join("") + '</div>';
+    } else {
+      NUT_ORDER.forEach(function (n) {
+        var list = FOOD_KEYS.filter(function (f) { return FACTS[f].n.indexOf(n) >= 0; });
+        if (!list.length) return;
+        var got = list.filter(function (f) { return known[f]; }).length;
+        html += '<div class="group-h">' + esc(n) + ' <span style="font-size:11px;color:var(--ink-3)">' + got + '/' + list.length + '</span></div>';
+        html += '<div class="grid-cards">' + list.map(function (f) {
+          return '<button class="gc' + (known[f] ? "" : " locked") + '" data-f="' + esc(f) + '">' + esc(f) + '</button>';
+        }).join("") + '</div>';
+      });
+    }
+    host.innerHTML = html;
+    Array.prototype.forEach.call(host.querySelectorAll(".gc"), function (b) {
+      b.onclick = function () { factSheet(b.getAttribute("data-f"), !!known[b.getAttribute("data-f")]); };
+    });
+  }
+
+  function factSheet(f, open) {
+    var d = FACTS[f];
+    var body = open
+      ? d.f.map(function (t) { return '<p style="margin:0 0 12px;font-size:14px;line-height:1.8">' + esc(t) + '</p>'; }).join("")
+      : '<p class="empty" style="margin-bottom:12px">この食材を記録すると開きます。</p>';
+    sheet(f, body + '<div class="chips">' + d.n.map(function (n) { return '<span class="chip">' + esc(n) + '</span>'; }).join("") + '</div>'
+      + '<div class="sheet-actions"><button class="btn quiet" id="fx">とじる</button></div>',
+      function () { $("fx").onclick = closeSheet; });
+  }
+
+  /* ============ 登録 ============ */
+  function renderReg() {
+    var host = $("myfood-list");
+    host.innerHTML = S.myFoods.length
+      ? S.myFoods.map(function (f, i) {
+          var bits = [];
+          if (f.kcal != null) bits.push(f.kcal + "kcal");
+          if (f.protein != null) bits.push("たんぱく質" + f.protein + "g");
+          return '<div class="tally"><span>' + esc(f.name) + '<br><small style="color:var(--ink-3);font-size:11px">'
+            + f.per + 'gあたり ' + (bits.join(" / ") || "数値なし") + '</small></span>'
+            + '<button class="linkbtn" data-i="' + i + '">直す</button></div>';
+        }).join("")
+      : '<p class="empty">まだありません。</p>';
+    Array.prototype.forEach.call(host.querySelectorAll("[data-i]"), function (b) {
+      b.onclick = function () { myFoodSheet(+b.getAttribute("data-i")); };
+    });
+    $("add-myfood").onclick = function () { myFoodSheet(-1); };
+
+    var rk = Object.keys(S.recipes);
+    $("recipe-list").innerHTML = rk.length
+      ? rk.map(function (name) {
+          return '<div style="padding:9px 0;border-bottom:1px solid var(--rule-2)"><div style="font-size:14px">' + esc(name) + '</div>'
+            + '<div class="chips">' + S.recipes[name].map(function (i) { return '<span class="chip">' + esc(i) + '</span>'; }).join("")
+            + '</div><button class="linkbtn" data-r="' + esc(name) + '" style="margin-top:5px">消す</button></div>';
+        }).join("")
+      : '<p class="empty">まだありません。具材つきで記録すると貯まります。</p>';
+    Array.prototype.forEach.call($("recipe-list").querySelectorAll("[data-r]"), function (b) {
+      b.onclick = function () { delete S.recipes[b.getAttribute("data-r")]; save(); renderReg(); };
+    });
+
+    $("store-mode").textContent = MODE_TEXT[Store.mode()] || "";
+
+    $("ex-btn").onclick = function () {
+      var months = {};
+      Object.keys(S.days).forEach(function (k) { months[mkOf(k)] = 1; });
+      var list = Object.keys(months);
+      Promise.all(list.map(loadMonthPhotos)).then(function () {
+        var payload = { v: 1, saved: new Date().toISOString(), state: S, photos: {} };
+        list.forEach(function (mk) { payload.photos[mk] = PH[mk] || {}; });
+        var blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = "kiroku-" + dkey(new Date()) + ".json";
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+        flash("書き出しました");
+      });
+    };
+
+    $("im-btn").onclick = function () { $("im-file").click(); };
+    $("im-file").onchange = function (e) {
+      var f = e.target.files && e.target.files[0];
+      if (!f) return;
+      var fr = new FileReader();
+      fr.onload = function () {
+        var payload;
+        try { payload = JSON.parse(fr.result); } catch (err) { flash("このファイルは読み込めませんでした"); return; }
+        if (!payload || !payload.state || !payload.state.days) { flash("記録のファイルではないようです"); return; }
+        sheet("読み込み",
+          '<p style="font-size:14px;margin:0 0 4px">いま入っている記録は、このファイルの中身に置きかわります。</p>'
+          + '<div class="sheet-actions"><button class="btn quiet" id="ix">やめる</button><button class="btn" id="iy">読み込む</button></div>',
+          function () {
+            $("ix").onclick = function () { closeSheet(); $("im-file").value = ""; };
+            $("iy").onclick = function () {
+              S = payload.state;
+              PH = payload.photos || {}; phLoaded = {};
+              Object.keys(PH).forEach(function (mk) { phLoaded[mk] = true; });
+              Store.set(KEY, JSON.stringify(S));
+              Object.keys(PH).forEach(function (mk) { Store.set(phKey(mk), JSON.stringify(PH[mk])); });
+              sel = TKEY; closeSheet(); $("im-file").value = ""; flash("読み込みました"); renderAll();
+            };
+          });
+      };
+      fr.readAsText(f);
+    };
+
+    $("wipe").onclick = function () {
+      sheet("記録をすべて消す",
+        '<p style="font-size:14px;margin:0 0 4px">これまでの記録、マイ食品、レシピ帳がすべて消えます。元に戻せません。</p>'
+        + '<div class="sheet-actions"><button class="btn quiet" id="wx">やめる</button><button class="btn" id="wy">消す</button></div>',
+        function () {
+          $("wx").onclick = closeSheet;
+          $("wy").onclick = function () {
+            var oldMonths = Object.keys(PH);
+            S = { days:{}, myFoods:[], recipes:{}, monthNotes:{} };
+            PH = {}; oldMonths.forEach(function (mk) { PH[mk] = {}; Store.set(phKey(mk), "{}"); });
+            sel = TKEY; save(); closeSheet(); renderAll();
+          };
+        });
+    };
+  }
+
+  function myFoodSheet(idx) {
+    var f = idx >= 0 ? S.myFoods[idx] : { name:"", per:100, kcal:null, protein:null, fat:null, carb:null, salt:null };
+    var v = function (x) { return x == null ? "" : x; };
+    sheet(idx >= 0 ? "食品を直す" : "食品を登録する",
+        '<label class="f"><span>商品名・料理名</span><input type="text" id="fn" value="' + esc(f.name) + '" placeholder="◯◯チョコクッキー"></label>'
+      + '<label class="f"><span>成分表示の基準量（g）</span><input type="number" id="fp" inputmode="numeric" value="' + f.per + '"></label>'
+      + '<p class="hint" style="margin:-6px 0 12px">パッケージの「100gあたり」「1袋(◯g)あたり」の数字をそのまま写してください。</p>'
+      + '<div class="row2">'
+      + '<label class="f"><span>エネルギー kcal</span><input type="number" id="fk" inputmode="decimal" value="' + v(f.kcal) + '"></label>'
+      + '<label class="f"><span>たんぱく質 g</span><input type="number" id="fpr" inputmode="decimal" value="' + v(f.protein) + '"></label>'
+      + '</div><div class="row2">'
+      + '<label class="f"><span>脂質 g</span><input type="number" id="ff" inputmode="decimal" value="' + v(f.fat) + '"></label>'
+      + '<label class="f"><span>炭水化物 g</span><input type="number" id="fc" inputmode="decimal" value="' + v(f.carb) + '"></label>'
+      + '</div>'
+      + '<label class="f"><span>食塩相当量 g</span><input type="number" id="fs" inputmode="decimal" value="' + v(f.salt) + '"></label>'
+      + '<div class="sheet-actions">'
+      + (idx >= 0 ? '<button class="btn quiet" id="fdel">消す</button>' : '')
+      + '<button class="btn" id="fok">保存</button></div>',
+      function () {
+        $("fok").onclick = function () {
+          var num = function (id) { var x = parseFloat($(id).value); return isNaN(x) ? null : x; };
+          var name = $("fn").value.trim();
+          if (!name) { flash("名前を入れてください"); return; }
+          var rec = { name:name, per: (parseFloat($("fp").value) || 100), kcal:num("fk"), protein:num("fpr"), fat:num("ff"), carb:num("fc"), salt:num("fs") };
+          if (idx >= 0) S.myFoods[idx] = rec; else S.myFoods.push(rec);
+          save(); closeSheet(); renderReg();
+        };
+        if ($("fdel")) $("fdel").onclick = function () { S.myFoods.splice(idx, 1); save(); closeSheet(); renderReg(); };
+      });
+  }
+
+  /* ============ タブ ============ */
+  var cur = "today";
+  function go(tab) {
+    cur = tab;
+    Array.prototype.forEach.call($("tabs").children, function (b) { b.classList.toggle("on", b.getAttribute("data-tab") === tab); });
+    ["today","cal","graph","book","reg"].forEach(function (t) { $("p-" + t).classList.toggle("on", t === tab); });
+    renderAll();
+  }
+  Array.prototype.forEach.call($("tabs").children, function (b) {
+    b.onclick = function () { go(b.getAttribute("data-tab")); };
+  });
+
+  $("cal-prev").onclick = function () { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderAll(); };
+  $("cal-next").onclick = function () { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderAll(); };
+  $("g-prev").onclick = function () { gMonth = new Date(gMonth.getFullYear(), gMonth.getMonth() - 1, 1); renderGraph(); };
+  $("g-next").onclick = function () { gMonth = new Date(gMonth.getFullYear(), gMonth.getMonth() + 1, 1); renderGraph(); };
+
+  function doRender() {
+    if (cur === "today") renderToday();
+    else if (cur === "cal") renderCal();
+    else if (cur === "graph") renderGraph();
+    else if (cur === "book") renderBook();
+    else if (cur === "reg") renderReg();
+  }
+  function renderAll() {
+    var need = {};
+    need[mkOf(sel)] = 1;
+    if (cur === "cal") need[mkey(calMonth)] = 1;
+    Promise.all(Object.keys(need).map(loadMonthPhotos)).then(doRender);
+  }
+
+  /* ============ 起動 ============ */
+  sel = TKEY;
+  calMonth = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+  gMonth = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+  Store.init().then(load).then(function () { renderAll(); });
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
